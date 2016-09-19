@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<block>
+  <name>scope</name>
+  <key>rollingscope_scope</key>
+  <category>[rollingscope]</category>
+  <import>from PyQt4 import Qt</import>
+  <import>from gnuradio import qtgui</import>
+  <import>import rollingscope</import>
+  <import>import sip</import>
+  <make>#set $win = 'self._%s_win'%$id
+rollingscope.scope($num_sp, $fs)
+self._$(id)_win = sip.wrapinstance(self.$(id).pyqwidget(), Qt.QWidget)
+$(gui_hint()($win))
+</make>
+  <param>
+    <name>Num Samples</name>
+    <key>num_sp</key>
+    <value>10000</value>
+    <type>int</type>
+  </param>
+  <param>
+    <name>Sample Rate</name>
+    <key>fs</key>
+    <value>32e3</value>
+    <type>float</type>
+  </param>
+
+  <param>
+    <name>GUI Hint</name>
+    <key>gui_hint</key>
+    <value></value>
+    <type>gui_hint</type>
+    <hide>part</hide>
+  </param>
+
+  <sink>
+    <name>in</name>
+    <type>float</type>
+  </sink>
+  <doc>
+The GUI hint can be used to position the widget within the application. \
+The hint is of the form [tab_id@tab_index]: [row, col, row_span, col_span]. \
+Both the tab specification and the grid position are optional.
+  </doc>
+
+</block>

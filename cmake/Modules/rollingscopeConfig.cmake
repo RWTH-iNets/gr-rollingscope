@@ -1,0 +1,30 @@
+INCLUDE(FindPkgConfig)
+PKG_CHECK_MODULES(PC_ROLLINGSCOPE rollingscope)
+
+FIND_PATH(
+    ROLLINGSCOPE_INCLUDE_DIRS
+    NAMES rollingscope/api.h
+    HINTS $ENV{ROLLINGSCOPE_DIR}/include
+        ${PC_ROLLINGSCOPE_INCLUDEDIR}
+    PATHS ${CMAKE_INSTALL_PREFIX}/include
+          /usr/local/include
+          /usr/include
+)
+
+FIND_LIBRARY(
+    ROLLINGSCOPE_LIBRARIES
+    NAMES gnuradio-rollingscope
+    HINTS $ENV{ROLLINGSCOPE_DIR}/lib
+        ${PC_ROLLINGSCOPE_LIBDIR}
+    PATHS ${CMAKE_INSTALL_PREFIX}/lib
+          ${CMAKE_INSTALL_PREFIX}/lib64
+          /usr/local/lib
+          /usr/local/lib64
+          /usr/lib
+          /usr/lib64
+)
+
+INCLUDE(FindPackageHandleStandardArgs)
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(ROLLINGSCOPE DEFAULT_MSG ROLLINGSCOPE_LIBRARIES ROLLINGSCOPE_INCLUDE_DIRS)
+MARK_AS_ADVANCED(ROLLINGSCOPE_LIBRARIES ROLLINGSCOPE_INCLUDE_DIRS)
+
