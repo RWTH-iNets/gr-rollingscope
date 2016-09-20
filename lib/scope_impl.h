@@ -41,9 +41,10 @@ namespace gr {
       QApplication *d_qApplication;
       boost::mutex mtx;
       float fs;
+      float full_scale;
 
     public:
-      scope_impl(int num_sp, float fs, QWidget* parent);
+      scope_impl(int num_sp, float fs, float full_scale, QWidget* parent);
       ~scope_impl();
       PyObject* pyqwidget();
       void paintEvent(QPaintEvent *event);

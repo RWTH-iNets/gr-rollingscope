@@ -8,7 +8,7 @@
   <import>import rollingscope</import>
   <import>import sip</import>
   <make>#set $win = 'self._%s_win'%$id
-rollingscope.scope($num_sp, $fs)
+rollingscope.scope($num_sp, $fs, $full_scale)
 self._$(id)_win = sip.wrapinstance(self.$(id).pyqwidget(), Qt.QWidget)
 $(gui_hint()($win))
 </make>
@@ -22,6 +22,12 @@ $(gui_hint()($win))
     <name>Sample Rate</name>
     <key>fs</key>
     <value>32e3</value>
+    <type>float</type>
+  </param>
+  <param>
+    <name>Full Scale</name>
+    <key>full_scale</key>
+    <value>0.00001</value>
     <type>float</type>
   </param>
 

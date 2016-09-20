@@ -24,27 +24,30 @@
 #include "scope_impl.h"
 
 #include <gnuradio/io_signature.h>
+#include <iostream>
+#include <string>
 
 namespace gr {
   namespace rollingscope {
 
     scope::sptr
-    scope::make(int num_sp, float fs, QWidget* parent)
+    scope::make(int num_sp, float fs, float full_scale, QWidget* parent)
     {
       return gnuradio::get_initial_sptr
-        (new scope_impl(num_sp, fs, parent));
+        (new scope_impl(num_sp, fs, full_scale, parent));
     }
 
     /*
      * The private constructor
      */
-    scope_impl::scope_impl(int num_sp, float fs, QWidget* parent)
+    scope_impl::scope_impl(int num_sp, float fs, float full_scale,
+                           QWidget* parent)
       : QWidget(parent),
       gr::sync_block("scope",
               gr::io_signature::make(1, 1, sizeof(float)),
               gr::io_signature::make(0, 0, 0)),
       num_sp_disp(num_sp),
-      fs(fs)
+      fs(fs), full_scale(full_scale)
     {
       if(qApp != NULL) {
         d_qApplication = qApp;
@@ -62,6 +65,7 @@ namespace gr {
       timer->start(100);
 
       this->updateGeometry();
+      set_max_noutput_items(num_sp_disp);
     }
 
     /*
@@ -94,19 +98,28 @@ namespace gr {
 
       mtx.lock();
       std::list<float> paint_buffer(time_series);
+      //std::cout << "paint " << std::endl;
       mtx.unlock();
 
       float x_step = 1;
       if(num_sp_disp < paint_buffer.size()) {
-        x_step = ((float)w / (float) paint_buffer.size());
+        x_step = ((float)w / (float)paint_buffer.size());
       } else {
-        x_step = ((float)w / (float) num_sp_disp);
+        x_step = ((float)w / (float)num_sp_disp);
+      }
+//      std::cout << "buffer: " << paint_buffer.size() << std::endl;
+//      std::cout << "w: " << w << " h: " << h << " step: " << x_step << std::endl;
+      for(int i = 0; i < 10; i++) {
+        float tick_x = (i * w / 9.0);
+        float tick_time = (tick_x / x_step) / fs;
+        p.drawText((int)tick_x, h - 20, QString::number(tick_time));
       }
       std::list<float>::iterator it;
       int latest_x_pos = 1;
+      int latest_x_tick_pos = -1000;
       for(it = paint_buffer.begin(); it != paint_buffer.end(); it++) {
         if(latest_x_pos != (int)x) {
-          p.drawPoint((int)x, ((h/2.0) - (*it)*(h/2.0)));
+          p.drawPoint((int)x, ((h/2.0) - (*it)*((h/2.0) / full_scale)));
         }
         latest_x_pos = (int)x;
         x += x_step;
@@ -129,21 +142,22 @@ namespace gr {
 
       // Do <+signal processing+>
       mtx.lock();
+      int skip = 0;
+      //std::cout << "work: n: " << noutput_items << " win size: " << time_series.size() << std::endl;
       if((time_series.size() + noutput_items) > num_sp_disp) {
-        std::cout << "list too full " << std::endl;
+        //std::cout << "window too full for new data set" << std::endl;
         int num_excess = (time_series.size() + noutput_items) - num_sp_disp;
-        if(num_excess > time_series.size()) {
-          time_series.clear();
-          std::cout << "erasing list" << std::endl;
-
-        } else {
-          std::cout << "updating list" << std::endl;
-          std::list<float>::iterator list_front = time_series.begin();
-          std::advance(list_front, num_excess);
-          time_series.erase(time_series.begin(), list_front);
+        if(num_excess > num_sp_disp) {
+          num_excess = num_sp_disp;
+          skip = noutput_items - num_sp_disp;
         }
+        std::list<float>::iterator delete_until = time_series.begin();
+        //std::cout << "del: " << num_excess << std::endl;
+        std::advance(delete_until, num_excess); //erase [begin, end)
+        time_series.erase(time_series.begin(), delete_until);
       }
-      time_series.insert(time_series.end(), in, in + noutput_items);
+      //std::cout << "skip: " << skip << std::endl;
+      time_series.insert(time_series.end(), in + skip, in + noutput_items);
       mtx.unlock();
 
       // Tell runtime system how many output items we produced.

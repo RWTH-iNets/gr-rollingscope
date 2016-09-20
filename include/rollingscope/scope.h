@@ -48,7 +48,8 @@ namespace gr {
        * class. rollingscope::scope::make is the public interface for
        * creating new instances.
        */
-      static sptr make(int num_sp, float fs, QWidget* parent=NULL);
+      static sptr make(int num_sp, float fs, float full_scale,
+                       QWidget* parent=NULL);
 
       virtual PyObject* pyqwidget() = 0;
     };
