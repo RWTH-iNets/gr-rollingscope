@@ -78,30 +78,39 @@ namespace gr {
 
     void scope_impl::paintEvent(QPaintEvent *event)
     {
+      QPainter p(this);
+      QColor color_bg(50, 50, 50);
+      QColor color_line(0,255,100);
+      QPen pen_line(color_line);
+
       int w = this->size().width();
       int h = this->size().height();
 
-      QPainter p(this);
-      QColor color(0,255,100);
-      QPen pen(color);
-      p.setPen(pen);
+      p.fillRect(0, 0, w, h, color_bg);
+      p.setPen(pen_line);
 
-      std::list<float>::iterator it;
       int i = 0;
       float x = 0;
 
       mtx.lock();
+      std::list<float> paint_buffer(time_series);
+      mtx.unlock();
+
+      std::list<float>::iterator it;
       float x_step = 1;
-      if(num_sp_disp < this->time_series.size()) {
-        x_step = ((float)w / (float) this->time_series.size());
+      if(num_sp_disp < this->paint_buffer.size()) {
+        x_step = ((float)w / (float) paint_buffer.size());
       } else {
         x_step = ((float)w / (float) num_sp_disp);
       }
-      for(it = this->time_series.begin(); it != this->time_series.end(); it++) {
-        p.drawPoint((int)x, ((h/2.0) - (*it)*(h/2.0)));
+      int latest_x_pos = 1;
+      for(it = this->paint_buffer.begin(); it != this->paint_buffer.end(); it++) {
+        if(latest_x_pos != (int)x) {
+          p.drawPoint((int)x, ((h/2.0) - (*it)*(h/2.0)));
+        }
+        latest_x_pos = (int)x;
         x += x_step;
       }
-      mtx.unlock();
     }
 
     PyObject* scope_impl::pyqwidget()
