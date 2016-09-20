@@ -96,15 +96,15 @@ namespace gr {
       std::list<float> paint_buffer(time_series);
       mtx.unlock();
 
-      std::list<float>::iterator it;
       float x_step = 1;
-      if(num_sp_disp < this->paint_buffer.size()) {
+      if(num_sp_disp < paint_buffer.size()) {
         x_step = ((float)w / (float) paint_buffer.size());
       } else {
         x_step = ((float)w / (float) num_sp_disp);
       }
+      std::list<float>::iterator it;
       int latest_x_pos = 1;
-      for(it = this->paint_buffer.begin(); it != this->paint_buffer.end(); it++) {
+      for(it = paint_buffer.begin(); it != paint_buffer.end(); it++) {
         if(latest_x_pos != (int)x) {
           p.drawPoint((int)x, ((h/2.0) - (*it)*(h/2.0)));
         }
